@@ -4,7 +4,16 @@ A modern, high-performance, accessible enterprise culinary scaling application e
 
 ## Features & Capabilities
 
-- **Zero-Dependency Architecture**: 100% native client-side execution. Zero external API calls, servers, or backend dependencies.
+- **Light & Dark Mode**:
+  - Seamless theme toggle in the top bar with Sun and Moon iconography.
+  - Full variable theming across all 3D cards, input fields, tables, and metric pills.
+  - Automatically respects system preferences and persists the user's choice to browser `localStorage`.
+- **ChefBot AI Culinary Chatbot**:
+  - Floating culinary assistant integrated into the bottom-right corner.
+  - Powered by Google Gemini (`gemini-3.8-flash`) via secure backend proxy route (`POST /api/chat`).
+  - Answers recipe scaling math, non-linear leavening adjustments (baking powder/soda/yeast), ingredient substitutions, cooking times, and pan size adaptations.
+  - "Analyze Current Recipe" feature passes active form data for real-time culinary context analysis.
+  - Automatic fallback to domain culinary expertise during transient network conditions.
 - **Enterprise-Grade Validation**:
   - Comprehensive input integrity checks for dish name, servings, and three core ingredients.
   - Strict validation on servings: flags empty, zero, negative, or non-numeric values with accessible inline hints and an overarching `<div role="alert">` notification banner.

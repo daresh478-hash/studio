@@ -39,7 +39,7 @@
   ];
 
   // Action Buttons
-  const scaleBtn = document.getElementById('scaleBtn');
+  const scaleBtn = document.getElementById('scaleRecipeBtn') || document.getElementById('scaleBtn');
   const resetBtn = document.getElementById('resetBtn');
   const exportBtn = document.getElementById('exportBtn');
   const printBtn = document.getElementById('printBtn');
@@ -183,17 +183,21 @@
 
     // 2. Original Servings Validation
     if (!origServingsVal) {
-      const msg = 'Original servings is required.';
+      const msg = 'Original servings field cannot be empty.';
       setFieldError(originalServingsInput, 'origServingsError', msg);
       errors.push(msg);
     } else {
       const origNum = Number(origServingsVal);
       if (isNaN(origNum) || !isFinite(origNum)) {
-        const msg = 'Original servings must be a valid numeric value.';
+        const msg = 'Original servings is invalid. Must be a numeric value.';
         setFieldError(originalServingsInput, 'origServingsError', msg);
         errors.push(msg);
-      } else if (origNum <= 0) {
-        const msg = 'Original servings must be greater than zero (cannot be zero or negative).';
+      } else if (origNum === 0) {
+        const msg = 'Original servings cannot be zero (0). Must be greater than zero.';
+        setFieldError(originalServingsInput, 'origServingsError', msg);
+        errors.push(msg);
+      } else if (origNum < 0) {
+        const msg = 'Original servings cannot be negative. Must be greater than zero.';
         setFieldError(originalServingsInput, 'origServingsError', msg);
         errors.push(msg);
       }
@@ -201,17 +205,21 @@
 
     // 3. Wanted Servings Validation
     if (!wantedServingsVal) {
-      const msg = 'Wanted servings is required.';
+      const msg = 'Wanted servings field cannot be empty.';
       setFieldError(wantedServingsInput, 'wantedServingsError', msg);
       errors.push(msg);
     } else {
       const wantedNum = Number(wantedServingsVal);
       if (isNaN(wantedNum) || !isFinite(wantedNum)) {
-        const msg = 'Wanted servings must be a valid numeric value.';
+        const msg = 'Wanted servings is invalid. Must be a numeric value.';
         setFieldError(wantedServingsInput, 'wantedServingsError', msg);
         errors.push(msg);
-      } else if (wantedNum <= 0) {
-        const msg = 'Wanted servings must be greater than zero (cannot be zero or negative).';
+      } else if (wantedNum === 0) {
+        const msg = 'Wanted servings cannot be zero (0). Must be greater than zero.';
+        setFieldError(wantedServingsInput, 'wantedServingsError', msg);
+        errors.push(msg);
+      } else if (wantedNum < 0) {
+        const msg = 'Wanted servings cannot be negative. Must be greater than zero.';
         setFieldError(wantedServingsInput, 'wantedServingsError', msg);
         errors.push(msg);
       }
@@ -284,15 +292,16 @@
     if (!validation.isValid) {
       // Per requirements: "servings field is empty zero,negative or invalid show a error message as clearly and do not diplay the calculated result"
       hideCalculatedResult();
+      saveToLocalStorage(null);
       return;
     }
 
     const { dishName, origServings, wantedServings, ingredients: ingList } = validation.data;
     const ratio = wantedServings / origServings;
 
-    // Calculate each new ingredient quantity using the specified formula
+    // Calculate each new ingredient amount using: original amount × wanted servings ÷ original servings
     const calculatedIngredients = ingList.map((item) => {
-      const scaledQty = item.origQty * ratio;
+      const scaledQty = (item.origQty * wantedServings) / origServings;
       return {
         name: item.name,
         origQty: item.origQty,
@@ -369,7 +378,7 @@
   /**
    * LocalStorage Engine: Save Inputs & Valid Result
    */
-  function saveToLocalStorage(lastValidResult = null) {
+  function saveToLocalStorage(lastValidResult = undefined) {
     try {
       const payload = {
         inputs: {
@@ -382,7 +391,7 @@
             unit: ing.unit.value,
           })),
         },
-        lastValidResult: lastValidResult || getSavedValidResult(),
+        lastValidResult: lastValidResult !== undefined ? lastValidResult : getSavedValidResult(),
         updatedAt: new Date().toISOString(),
       };
 
@@ -710,9 +719,189 @@
   }
 
   /**
+   * Theme Engine (Light / Dark Mode)
+   */
+  const THEME_STORAGE_KEY = 'culinaryscale_theme_mode';
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+    const initialTheme = savedTheme || (prefersLight ? 'light' : 'dark');
+    setTheme(initialTheme);
+
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+        setTheme(nextTheme);
+        showToast(`Switched to ${nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1)} Mode`);
+      });
+    }
+  }
+
+  function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }
+
+  /**
+   * ChefBot AI Chatbot Engine
+   */
+  const chatLauncherBtn = document.getElementById('chatLauncherBtn');
+  const chatWidgetWindow = document.getElementById('chatWidgetWindow');
+  const chatCloseBtn = document.getElementById('chatCloseBtn');
+  const chatMessagesArea = document.getElementById('chatMessagesArea');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const askCurrentRecipeBtn = document.getElementById('askCurrentRecipeBtn');
+
+  function initChatbot() {
+    if (!chatLauncherBtn || !chatWidgetWindow) return;
+
+    chatLauncherBtn.addEventListener('click', () => {
+      const isOpen = chatWidgetWindow.classList.contains('open');
+      if (isOpen) {
+        chatWidgetWindow.classList.remove('open');
+      } else {
+        chatWidgetWindow.classList.add('open');
+        chatInput.focus();
+      }
+    });
+
+    if (chatCloseBtn) {
+      chatCloseBtn.addEventListener('click', () => {
+        chatWidgetWindow.classList.remove('open');
+      });
+    }
+
+    if (chatForm) {
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendChatMessage();
+      });
+    }
+
+    // Quick suggestion chips
+    const suggestionChips = document.querySelectorAll('.chat-suggestion-chip[data-prompt]');
+    suggestionChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const prompt = chip.getAttribute('data-prompt');
+        if (prompt) {
+          chatInput.value = prompt;
+          sendChatMessage();
+        }
+      });
+    });
+
+    if (askCurrentRecipeBtn) {
+      askCurrentRecipeBtn.addEventListener('click', () => {
+        const dish = dishNameInput.value.trim() || 'my recipe';
+        chatInput.value = `Can you analyze ${dish} and give me advice on scaling and ingredient adjustments?`;
+        sendChatMessage();
+      });
+    }
+  }
+
+  function getRecipeContext() {
+    return {
+      dishName: dishNameInput.value.trim(),
+      originalServings: originalServingsInput.value.trim(),
+      wantedServings: wantedServingsInput.value.trim(),
+      ingredients: ingredients.map((ing) => ({
+        name: ing.name.value.trim(),
+        qty: ing.qty.value.trim(),
+        unit: ing.unit.value,
+      })),
+    };
+  }
+
+  async function sendChatMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    // Append user message
+    appendMessage(text, 'user');
+    chatInput.value = '';
+    chatSendBtn.disabled = true;
+
+    // Show typing indicator
+    const typingIndicator = showTypingIndicator();
+
+    try {
+      const recipeContext = getRecipeContext();
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, recipeContext }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      removeTypingIndicator(typingIndicator);
+      appendMessage(data.reply || 'No response received from ChefBot.', 'bot');
+    } catch (err) {
+      console.warn('ChefBot fetch error:', err);
+      removeTypingIndicator(typingIndicator);
+      appendMessage(
+        "I'm currently in offline culinary mode. When scaling ingredients, remember that core volumes scale directly by the serving multiplier, while concentrated spices and leaveners should initially be increased with caution (e.g., 75-80% of ratio).",
+        'bot'
+      );
+    } finally {
+      chatSendBtn.disabled = false;
+      chatInput.focus();
+    }
+  }
+
+  function appendMessage(text, sender) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-msg ${sender === 'user' ? 'chat-msg-user' : 'chat-msg-bot'}`;
+
+    if (sender === 'user') {
+      msgDiv.textContent = text;
+    } else {
+      // Basic formatting for bot messages: bold, bullets, newlines
+      const formatted = escapeHtml(text)
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\n\s*•\s*(.*?)/g, '<br>&bull; $1')
+        .replace(/\n\s*\*\s*(.*?)/g, '<br>&bull; $1')
+        .replace(/\n/g, '<br>');
+      msgDiv.innerHTML = formatted;
+    }
+
+    chatMessagesArea.appendChild(msgDiv);
+    chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+  }
+
+  function showTypingIndicator() {
+    const div = document.createElement('div');
+    div.className = 'typing-bubble';
+    div.innerHTML = `
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    `;
+    chatMessagesArea.appendChild(div);
+    chatMessagesArea.scrollTop = chatMessagesArea.scrollHeight;
+    return div;
+  }
+
+  function removeTypingIndicator(indicator) {
+    if (indicator && indicator.parentNode) {
+      indicator.parentNode.removeChild(indicator);
+    }
+  }
+
+  /**
    * Initial Setup
    */
   document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    initChatbot();
     initEvents();
     setup3DCardTilt();
     restoreFromLocalStorage();
