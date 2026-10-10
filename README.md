@@ -1,11 +1,49 @@
-<div align="center">
+# CulinaryScale Pro - Enterprise Recipe Scaling & Formulation Engine
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A modern, high-performance, accessible enterprise culinary scaling application engineered entirely with native **HTML5**, **CSS3 (3D depth & perspective)**, and **Vanilla JavaScript (ES6+)**.
 
-  <h1>Built with AI Studio</h2>
+## Features & Capabilities
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+- **Zero-Dependency Architecture**: 100% native client-side execution. Zero external API calls, servers, or backend dependencies.
+- **Enterprise-Grade Validation**:
+  - Comprehensive input integrity checks for dish name, servings, and three core ingredients.
+  - Strict validation on servings: flags empty, zero, negative, or non-numeric values with accessible inline hints and an overarching `<div role="alert">` notification banner.
+  - As required, invalid or non-positive servings prevent calculated results from being displayed.
+- **Exact Formulation Scaling Engine**:
+  - Precision formula implementation:
+    $$\text{New Quantity} = \text{Original Quantity} \times \left(\frac{\text{Wanted Servings}}{\text{Original Servings}}\right)$$
+  - Advanced decimal precision handling: prevents floating-point rounding errors (e.g. `2.3333333333333335` is rounded and formatted cleanly to decimal places).
+- **3D Spatial Card Styling**:
+  - Real 3D CSS perspective (`perspective: 1200px`, `transform-style: preserve-3d`).
+  - Interactive mouse tilt physics tracking cursor coordinates on desktop.
+  - Tactile 3D button depression effects on click with realistic depth shadows.
+  - Graceful fallback for users with `prefers-reduced-motion`.
+- **Persistent LocalStorage State**:
+  - Automatically saves all input fields as you type.
+  - Saves verified calculated results.
+  - Completely restores inputs and the calculated output when the page reloads or refreshes.
+  - One-click Reset / Clear option to purge saved state.
+- **Enterprise Workflow Tools**:
+  - Quick test presets: *Tuscan Herb Pasta Primavera*, *Country Sourdough Boule*, and *Vanilla Crème Brûlée*.
+  - Quick servings multipliers: `-1`, `+1`, `0.5x`, `2x`, and `3x` for fast culinary ratio exploration.
+  - One-click "Copy Scaled Recipe" to clipboard with toast notification.
+  - Print optimization (`@media print`) for commercial kitchen prep stations.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Project Structure
 
-</div>
+```
+├── index.html          # Semantic HTML5 layout and 3D card structure
+├── css/
+│   └── style.css       # Native CSS3 styles, 3D perspective, variables & responsiveness
+├── js/
+│   └── script.js       # Native ES6+ validation, calculation, and LocalStorage logic
+└── README.md           # Documentation and run instructions
+```
+
+## How to Run the Application
+
+Because this application uses native HTML5, CSS3, and JavaScript:
+
+1. **Direct Browser**: Open `index.html` in any modern web browser (Chrome, Firefox, Safari, Edge).
+2. **Local Dev Server**: Run `npm run dev` in the terminal to launch the Vite local server on `http://localhost:3000`.
+3. **Build Check**: Run `npm run build` or `npm run preview`.

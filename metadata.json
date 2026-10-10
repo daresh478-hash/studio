@@ -1,0 +1,6 @@
+{
+  "name": "CulinaryScale Pro - Recipe Scaling Engine",
+  "description": "Enterprise-grade recipe scaling and formulation engine with precision decimal calculations, 3D depth styling, real-time validation, and persistent state storage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
